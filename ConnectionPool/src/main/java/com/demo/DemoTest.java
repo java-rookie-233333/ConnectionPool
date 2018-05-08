@@ -1,31 +1,29 @@
 package com.demo;
 
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.SQLException;
 import java.util.concurrent.atomic.AtomicInteger;
+
+import com.SuperDataSource;
+import com.pool.SuperPoolConnection;
 
 public class DemoTest {
 
-	public void a() {
-       b();
-	}
 
-	private void b() {
-		int a = 0;
-		while (true) {
-			a += 1;
-			if (a > 100) {
-				return;
-			}
-		}
-	}
 	
-	public static void main(String[] args) {
-//		new DemoTest().a();
-		
-//		int a = 1000.1111111;
-		double b = 1000.111111;
-		
-		AtomicInteger atomicInteger = new AtomicInteger();
-		atomicInteger.set(5);
-		System.out.println(atomicInteger.get());
+	public static void main(String[] args) throws SQLException {
+      SuperDataSource dataSource = new SuperDataSource();
+      dataSource.setUsername("root");
+      dataSource.setPassword("123456");
+      dataSource.setJdbcUrl("jdbc:mysql://127.0.0.1:3306/test");
+      dataSource.setDriverClass("com.mysql.jdbc.Driver");
+      dataSource.setInitialSize(1);
+      dataSource.setMaxIdle(20);
+      Connection a =  dataSource.getConnection();
+	  System.out.println(a.toString());
+//	  a.close();
+	  Connection b = dataSource.getConnection();
+	  System.out.println(b.toString());
 	}
 }

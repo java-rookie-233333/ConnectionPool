@@ -17,29 +17,39 @@ public class SuperPool {
 	// 未使用连接
 	private ArrayBlockingQueue<SuperPoolConnection> duse = new ArrayBlockingQueue<SuperPoolConnection>(1024);
 
+	private boolean initDriver = false;
+
 	private SuperPool() {
 
 	}
 
-	private SuperPoolConnection  getConnection() {
+	private void initDriver() {
 		try {
-			Class.forName(getConfiguration().getDriverClass());
+			Class.forName(configuration.getDriverClass());
 		} catch (ClassNotFoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+		initDriver = true;
+	}
+
+	private SuperPoolConnection getConnection() {
+		if (!initDriver) {
+			initDriver();
+		}
 		Connection conn = null;
 		SuperPoolConnection superPoolConnection = null;
 		try {
-			conn = DriverManager.getConnection(getConfiguration().getDriverClass(),getConfiguration().getUsername() , getConfiguration().getPassword());
-		    superPoolConnection = new SuperPoolConnection(conn);
+			conn = DriverManager.getConnection(configuration.getJdbcUrl(), configuration.getUsername(),
+					configuration.getPassword());
+			superPoolConnection = new SuperPoolConnection(conn);
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		return superPoolConnection;
 	}
-	
+
 	private static class Singteton {
 		private static SuperPool superPool;
 		static {
@@ -65,16 +75,16 @@ public class SuperPool {
 
 	public SuperPoolConnection getSuperPoolConnection(long waitTime) throws InterruptedException {
 		SuperPoolConnection superPoolConnection = null;
-		while(true) {
-			if(use.size()+duse.size()<=getConfiguration().getMaxIdle()) {
-				if(duse.size()<=0) {
+		while (true) {
+			if (use.size() + duse.size() <= getConfiguration().getMaxIdle()) {
+				if (duse.size() <= 0) {
 					superPoolConnection = getConnection();
 					use.put(superPoolConnection);
 					return superPoolConnection;
-				}else {
+				} else {
 					return duse.take();
 				}
-			}else {
+			} else {
 				wait(waitTime);
 			}
 		}
@@ -87,7 +97,7 @@ public class SuperPool {
 	public void removeUse(SuperPoolConnection use) {
 		this.use.remove(use);
 	}
-	
+
 	public void addDuse(SuperPoolConnection duse) {
 		this.duse.add(duse);
 	}
@@ -95,7 +105,5 @@ public class SuperPool {
 	public void removeDuse(SuperPoolConnection duse) {
 		this.duse.remove(duse);
 	}
-	
-	
-	
+
 }

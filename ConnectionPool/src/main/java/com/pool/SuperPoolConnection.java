@@ -28,6 +28,10 @@ public class SuperPoolConnection  implements javax.sql.PooledConnection, Connect
 	protected Connection connection;
 	
 	private SuperPool superPool = SuperPool.getInstance();
+	
+	boolean isClosed = false; 
+	
+	
 
 	public SuperPoolConnection(Connection connection) {
 		this.connection = connection;
@@ -77,7 +81,7 @@ public class SuperPoolConnection  implements javax.sql.PooledConnection, Connect
 	}
 
 	public boolean isClosed() throws SQLException {
-		return connection.isClosed();
+		return isClosed;
 	}
 
 	public DatabaseMetaData getMetaData() throws SQLException {
@@ -282,6 +286,7 @@ public class SuperPoolConnection  implements javax.sql.PooledConnection, Connect
 		superPool.removeUse(this);
 		superPool.addDuse(this);
 		connection = null;
+		isClosed = true;
 	}
 	
 }
