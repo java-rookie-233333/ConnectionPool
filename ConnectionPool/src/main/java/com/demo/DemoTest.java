@@ -1,12 +1,9 @@
 package com.demo;
 
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.SQLException;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import com.SuperDataSource;
-import com.pool.SuperPoolConnection;
 
 public class DemoTest {
 
@@ -22,6 +19,7 @@ public class DemoTest {
       dataSource.setMaxIdle(20);
       Connection a =  dataSource.getConnection();
 	  System.out.println(a.toString());
+	  //连接进行未进行关闭
 //	  a.close();
 	  Connection b = dataSource.getConnection();
 	  System.out.println(b.toString());

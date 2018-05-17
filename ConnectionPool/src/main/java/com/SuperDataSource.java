@@ -1,20 +1,16 @@
 package com;
 
-import java.io.PrintWriter;
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.sql.SQLFeatureNotSupportedException;
-import java.util.logging.Logger;
 
 import javax.sql.ConnectionPoolDataSource;
 import javax.sql.DataSource;
 import javax.sql.PooledConnection;
 
+import com.pool.SuperConnection;
 import com.pool.SuperPool;
 import com.pool.SuperPoolConnection;
 import com.uitl.StringUtils;
-
-import lombok.Data;
 
 /**
  * 
@@ -31,7 +27,7 @@ import lombok.Data;
  * @date 2018年4月24日
  */
 
-public class SuperDataSource extends ResourceManagement implements DataSource,ConnectionPoolDataSource {
+public class SuperDataSource extends ResourceManagement implements DataSource, ConnectionPoolDataSource {
 
 	protected volatile String username;
 	protected volatile String password;
@@ -43,7 +39,7 @@ public class SuperDataSource extends ResourceManagement implements DataSource,Co
 	protected volatile int maxActive = 0;
 	protected volatile long maxWait = 0;
 	protected volatile long waitTime = 1000L;
-	
+
 	private SuperPool superPool = SuperPool.getInstance();
 
 	public SuperDataSource() {
@@ -55,7 +51,7 @@ public class SuperDataSource extends ResourceManagement implements DataSource,Co
 		this.password = password;
 		this.jdbcUrl = jdbcUrl;
 	}
-	
+
 	public SuperPoolConnection getSuperPoolConnection() {
 		init();
 		try {
@@ -69,9 +65,9 @@ public class SuperDataSource extends ResourceManagement implements DataSource,Co
 
 	public Connection getConnection() throws SQLException {
 		SuperPoolConnection superPoolConnection = getSuperPoolConnection();
-		if(superPoolConnection!=null) {
+		if (superPoolConnection != null) {
 			return superPoolConnection;
-		}else {
+		} else {
 			throw new UnsupportedOperationException("Not supported by SuperDataSource");
 		}
 	}
@@ -94,7 +90,7 @@ public class SuperDataSource extends ResourceManagement implements DataSource,Co
 	}
 
 	private void init() {
-		if(superPool.getConfiguration() == null) {
+		if (superPool.getConfiguration() == null) {
 			DatabaseConfiguration configuration = new DatabaseConfiguration();
 			configuration.setDriverClass(getDriverClass());
 			configuration.setJdbcUrl(getJdbcUrl());
@@ -108,12 +104,12 @@ public class SuperDataSource extends ResourceManagement implements DataSource,Co
 			superPool.setConfiguration(configuration);
 		}
 	}
-	
+
 	public PooledConnection getPooledConnection() throws SQLException {
 		SuperPoolConnection superPoolConnection = getSuperPoolConnection();
-		if(superPoolConnection!=null) {
+		if (superPoolConnection != null) {
 			return superPoolConnection;
-		}else {
+		} else {
 			throw new UnsupportedOperationException("Not supported by SuperDataSource");
 		}
 	}
@@ -134,14 +130,21 @@ public class SuperDataSource extends ResourceManagement implements DataSource,Co
 		}
 		return getPooledConnection();
 	}
-	
-	public void close() throws SQLException {
-		// TODO Auto-generated method stub
 
+	// 关闭连接池的时候这里要去进行连接集合的清理，目前未做实现
+	public void close() throws SQLException {
+		// 开始回收连接
+		for (Connection connection : superPool.getUse()) {
+			connection.close();
+		}
+		superPool.setUse(null);
+		for (Connection connection : superPool.getDuse()) {
+			connection.close();
+		}
+		superPool.setDuse(null);
 	}
-	
-	
-//****************参数get,set方法分界线******************************************	
+
+	// ****************参数get,set方法分界线******************************************
 	public String getUsername() {
 		return username;
 	}
